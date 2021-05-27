@@ -1,139 +1,60 @@
 buildscript {
-  ext.getExtOrDefault = {name ->
-    return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties['ReactNativeWebView_' + name]
+  repositories {
+    google()
+    jcenter()
   }
-
-  // The Android Gradle plugin is only required when opening the android folder stand-alone.
-  // This avoids unnecessary downloads and potential conflicts when the library is included as a
-  // module dependency in an application project.
-  if (project == rootProject) {
-    repositories {
-      mavenCentral()
-      google()
-      jcenter()
-    }
-
-    dependencies {
-      classpath("com.android.tools.build:gradle:3.6.0")
-      classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${getExtOrDefault('kotlinVersion')}")
-    }
-  } else {
-    repositories {
-      mavenCentral()
-      jcenter()
-    }
-
-    dependencies {
-      classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${getExtOrDefault('kotlinVersion')}")
-    }
+  dependencies {
+    classpath rootProject.ext.has('gradleBuildTools') ? rootProject.ext.get('gradleBuildTools') : 'com.android.tools.build:gradle:3.4.2'
+    classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1'
   }
-}
-
-def getExtOrIntegerDefault(name) {
-  return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties['ReactNativeWebView_' + name]).toInteger()
 }
 
 apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
+apply plugin: 'com.github.dcendents.android-maven'
+
+def safeExtGet(prop, fallback) {
+  rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+}
 
 android {
-  compileSdkVersion getExtOrIntegerDefault('compileSdkVersion')
-  buildToolsVersion getExtOrDefault('buildToolsVersion')
+  compileSdkVersion safeExtGet('compileSdkVersion', 28)
+  buildToolsVersion safeExtGet('buildToolsVersion', '28.0.3')
+
   defaultConfig {
-    minSdkVersion getExtOrIntegerDefault('minSdkVersion')
-    targetSdkVersion getExtOrIntegerDefault('targetSdkVersion')
+    minSdkVersion safeExtGet('minSdkVersion', 16)
+    targetSdkVersion safeExtGet('targetSdkVersion', 22)
     versionCode 1
     versionName "1.0"
   }
-  buildTypes {
-    release {
-      minifyEnabled false
-    }
-  }
   lintOptions {
-    disable 'GradleCompatible'
-  }
-  compileOptions {
-    sourceCompatibility JavaVersion.VERSION_1_8
-    targetCompatibility JavaVersion.VERSION_1_8
+    abortOnError false
   }
 }
 
 repositories {
-  mavenCentral()
-  jcenter()
+  mavenLocal()
   google()
-
-  def found = false
-  def defaultDir = null
-  def androidSourcesName = 'React Native sources'
-
-  if (rootProject.ext.has('reactNativeAndroidRoot')) {
-    defaultDir = rootProject.ext.get('reactNativeAndroidRoot')
-  } else {
-    defaultDir = new File(
-      projectDir,
-      '/../../../node_modules/react-native/android'
-    )
-  }
-
-  if (defaultDir.exists()) {
+  jcenter()
+  maven { url "https://jitpack.io" }
+  if (project == rootProject) {
     maven {
-      url defaultDir.toString()
-      name androidSourcesName
+      url "https://a8c-libs.s3.amazonaws.com/android/react-native-mirror"
     }
-
-    logger.info(":${project.name}:reactNativeAndroidRoot ${defaultDir.canonicalPath}")
-    found = true
   } else {
-    def parentDir = rootProject.projectDir
-
-    1.upto(5, {
-      if (found) return true
-      parentDir = parentDir.parentFile
-
-      def androidSourcesDir = new File(
-        parentDir,
-        'node_modules/react-native'
-      )
-
-      def androidPrebuiltBinaryDir = new File(
-        parentDir,
-        'node_modules/react-native/android'
-      )
-
-      if (androidPrebuiltBinaryDir.exists()) {
-        maven {
-          url androidPrebuiltBinaryDir.toString()
-          name androidSourcesName
-        }
-
-        logger.info(":${project.name}:reactNativeAndroidRoot ${androidPrebuiltBinaryDir.canonicalPath}")
-        found = true
-      } else if (androidSourcesDir.exists()) {
-        maven {
-          url androidSourcesDir.toString()
-          name androidSourcesName
-        }
-
-        logger.info(":${project.name}:reactNativeAndroidRoot ${androidSourcesDir.canonicalPath}")
-        found = true
-      }
-    })
-  }
-
-  if (!found) {
-    throw new GradleException(
-      "${project.name}: unable to locate React Native android sources. " +
-        "Ensure you have you installed React Native as a dependency in your project and try again."
-    )
+    maven {
+      // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
+      url "$projectDir/../../../node_modules/react-native/android"
+    }
   }
 }
-
-def kotlin_version = getExtOrDefault('kotlinVersion')
 
 dependencies {
-  //noinspection GradleDynamicVersion
-  implementation 'com.facebook.react:react-native:+'
-  implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+  if (project == rootProject) {
+    // If this is the root project (e.g. Jitpack), specify a version
+    implementation 'com.facebook.react:react-native:0.61.5'
+  } else {
+    implementation 'com.facebook.react:react-native:+'
+  }
+  implementation fileTree( dir: "libs", includes: ['*.jar'] )
 }
+

@@ -20,10 +20,11 @@
     "ci": "CI=true && yarn lint",
     "ci:publish": "yarn semantic-release",
     "lint": "yarn tsc --noEmit && yarn eslint ./src --ext .ts,.tsx",
-    "build": "yarn tsc",
-    "prepare": "yarn build",
+    "build": "npm run tsc",
+    "prepare": "npm run build",
     "appium": "appium",
-    "test:windows": "yarn jest --setupFiles=./jest-setups/jest.setup.js"
+    "test:windows": "yarn jest --setupFiles=./jest-setups/jest.setup.js",
+    "tsc": "tsc"
   },
   "rn-docs": {
     "title": "Webview",

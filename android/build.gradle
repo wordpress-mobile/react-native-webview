@@ -20,30 +20,26 @@ android {
 }
 
 repositories {
-  mavenLocal()
-  google()
-  jcenter()
-  maven { url "https://jitpack.io" }
-  if (project == rootProject) {
-    maven {
-      url "https://a8c-libs.s3.amazonaws.com/android/react-native-mirror"
+    if (project == rootProject) {
+        maven { url "https://a8c-libs.s3.amazonaws.com/android/react-native-mirror" }
+    } else {
+        // When building as a dep, the RN's maven repo is locally in the node_modules folder
+        def nodeModulesPath = "${project.buildDir}/../../node_modules/"
+        maven { url "${nodeModulesPath}/react-native/android" }
     }
-  } else {
-    maven {
-      // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
-      url "$projectDir/../../../node_modules/react-native/android"
-    }
-  }
+
+    google()
+    mavenCentral()
+    jcenter()
 }
 
 dependencies {
-  if (project == rootProject) {
-    // If this is the root project (e.g. Jitpack), specify a version
-    implementation 'com.facebook.react:react-native:0.64.0'
-  } else {
-    implementation 'com.facebook.react:react-native:+'
-  }
-  implementation "org.jetbrains.kotlin:kotlin-stdlib:$gradle.ext.kotlinVersion"
-  implementation fileTree( dir: "libs", includes: ['*.jar'] )
+    if (project == rootProject) {
+        // If this is the root project (e.g. Jitpack), specify a version
+        implementation 'com.facebook.react:react-native:0.64.0'
+    } else {
+        //noinspection GradleDynamicVersion
+        api "com.facebook.react:react-native:+"
+    }
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$gradle.ext.kotlinVersion"
 }
-

@@ -41,5 +41,4 @@ dependencies {
         //noinspection GradleDynamicVersion
         api "com.facebook.react:react-native:+"
     }
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$gradle.ext.kotlinVersion"
 }

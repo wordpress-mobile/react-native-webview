@@ -1,3 +1,5 @@
+## [DEPRECATED] _This repository is no longer used, as in Gutenberg we now use the original version of this package, plus fetching [a prebuilt Android artifact from a maven repo on S3](https://github.com/wordpress-mobile/react-native-libraries-publisher/blob/trunk/README.md)._
+
 # React Native WebView - a Modern, Cross-Platform WebView for React Native
 
 [![star this repo](http://githubbadges.com/star.svg?user=react-native-webview&repo=react-native-webview&style=flat)](https://github.com/react-native-webview/react-native-webview)
